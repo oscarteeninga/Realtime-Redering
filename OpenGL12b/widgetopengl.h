@@ -34,7 +34,7 @@ protected:
     QMatrix4x4 m_matrix, v_matrix, p_matrix;
 
     GLuint shaderProgram;
-    GLuint VAO[2];
+    GLuint VAO;
 
     GLuint loadShader(GLenum type, QString fname);
 

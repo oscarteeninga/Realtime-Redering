@@ -95,20 +95,27 @@ void WidgetOpenGL::initializeGL()
         model.readFile("../Modele/dragon.obj", true, false, 0.4);
         triangles_cnt = model.getVertDataCount();
 
+        Model model2;
+        model2.readFile("../Modele/f1.obj", true, false, 0.4);
+        triangles_cnt_2 = model2.getVertDataCount();
 
         ////////////////////////////////////////////////////////////////
         // CZ 3. Vertex Buffer Object + Vertex Array Object
         ////////////////////////////////////////////////////////////////
 
         // tworzymy VBO i przesylamy dane do serwera OpenGL
-        GLuint VBO[2];
-        glGenBuffers(2, &VBO[0]);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-        glBufferData(GL_ARRAY_BUFFER, model.getVertDataSize(), model.getVertData(), GL_STATIC_DRAW);
+        GLuint VBO;
+        glGenBuffers(1, &VBO);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        float *result = new float[model.getVertDataCount() + model2.getVertDataCount()];
+        std::copy(model.getVertData(), model.getVertData() + model.getVertDataCount(), result);
+        std::copy(model2.getVertData(), model2.getVertData() + model2.getVertDataCount(), result + model.getVertDataCount());
+
+        glBufferData(GL_ARRAY_BUFFER, sizeof(result), result, GL_STATIC_DRAW);
 
         // tworzymy VAO
-        glGenVertexArrays(2, VAO);
-        glBindVertexArray(VAO[0]);
+        glGenVertexArrays(1, &VAO);
+        glBindVertexArray(VAO);
 
         // wspolrzene wierzcholkow
         GLint attr = glGetAttribLocation(shaderProgram, "position");
@@ -123,51 +130,10 @@ void WidgetOpenGL::initializeGL()
         glEnableVertexAttribArray(attr);
 
         // zapodajemy VBO
-        glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
         // odczepiamy VAO, aby sie nic juz nie zmienilo
         glBindVertexArray(0);
-
-
-        ////////////////////////////////////////////////////////////////
-        // CZ 4. Wczytanie modelu 2
-        ////////////////////////////////////////////////////////////////
-
-        Model model2;
-        model2.readFile("../Modele/f1.obj", true, false, 0.4);
-        triangles_cnt_2 = model2.getVertDataCount();
-
-
-        ////////////////////////////////////////////////////////////////
-        // CZ 5. Vertex Buffer Object 2 + Vertex Array Object 2
-        ////////////////////////////////////////////////////////////////
-
-        // tworzymy VBO i przesylamy dane do serwera OpenGL
-        glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-        glBufferData(GL_ARRAY_BUFFER, model2.getVertDataSize(), model2.getVertData(), GL_STATIC_DRAW);
-
-        // tworzymy VAO
-        glBindVertexArray(VAO[1]);
-
-        // wspolrzene wierzcholkow
-        attr = glGetAttribLocation(shaderProgram, "position");
-        if (attr < 0) throw QString("Nieprawidlowy parametr 'position'");
-        glVertexAttribPointer(attr, 3, GL_FLOAT, GL_FALSE, model2.getVertDataStride()*sizeof(GLfloat), 0);
-        glEnableVertexAttribArray(attr);
-
-        // normalne
-        attr = glGetAttribLocation(shaderProgram, "normal");
-        if (attr < 0) throw QString("Nieprawidlowy parametr 'normal'");
-        glVertexAttribPointer(attr, 3, GL_FLOAT, GL_FALSE, model2.getVertDataStride()*sizeof(GLfloat), (void *)(3*sizeof(GLfloat)));
-        glEnableVertexAttribArray(attr);
-
-        // zapodajemy VBO
-        glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-
-        // odczepiamy VAO, aby sie nic juz nie zmienilo
-        glBindVertexArray(0);
-
-
 
         ////////////////////////////////////////////////////////////////
         // CZ 4. Inne inicjalizacje OpenGL
@@ -201,45 +167,27 @@ void WidgetOpenGL::paintGL()
 
         // rysujemy
         glUseProgram(shaderProgram);
+        glBindVertexArray(VAO);
 
+        // macierz
+        int attr = glGetUniformLocation(shaderProgram, "pvm_matrix");
+        if (attr < 0) throw QString("Nieprawidlowy parametr 'pvm_matrix'");
 
         // !!!
         for (int i = 0; i < 10; i++)
         {
+            m_matrix.setToIdentity();
+            m_matrix.rotate(36*i, 0, 1, 0);
+            m_matrix.translate(0, 0, -2);
+            m_matrix.scale(0.5);
+
+            QMatrix4x4 pvm_matrix = p_matrix*v_matrix*m_matrix;
+            glUniformMatrix4fv(attr, 1, GL_FALSE, pvm_matrix.data());
             if (i % 2 == 0) {
-                glBindVertexArray(VAO[0]);
-
-                // macierz
-                int attr = glGetUniformLocation(shaderProgram, "pvm_matrix");
-                if (attr < 0) throw QString("Nieprawidlowy parametr 'pvm_matrix'");
-
-                m_matrix.setToIdentity();
-                m_matrix.rotate(36*i, 0, 1, 0);
-                m_matrix.translate(0, 0, -2);
-                m_matrix.scale(0.5);
-
-                QMatrix4x4 pvm_matrix = p_matrix*v_matrix*m_matrix;
-                glUniformMatrix4fv(attr, 1, GL_FALSE, pvm_matrix.data());
-
                 glDrawArrays(GL_TRIANGLES, 0, 3*triangles_cnt);
             } else {
-                glBindVertexArray(VAO[1]);
-
-                // macierz
-                int attr = glGetUniformLocation(shaderProgram, "pvm_matrix");
-                if (attr < 0) throw QString("Nieprawidlowy parametr 'pvm_matrix'");
-
-                m_matrix.setToIdentity();
-                m_matrix.rotate(36*i, 0, 1, 0);
-                m_matrix.translate(0, 0, -2);
-                m_matrix.scale(0.5);
-
-                QMatrix4x4 pvm_matrix = p_matrix*v_matrix*m_matrix;
-                glUniformMatrix4fv(attr, 1, GL_FALSE, pvm_matrix.data());
-
-                glDrawArrays(GL_TRIANGLES, 0, 3*triangles_cnt_2);
+                glDrawArrays(GL_TRIANGLES, 3*triangles_cnt, 3*triangles_cnt_2);
             }
-
         }
 
         // odczepiamy VAO
