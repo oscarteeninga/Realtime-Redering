@@ -107,11 +107,9 @@ void WidgetOpenGL::initializeGL()
         GLuint VBO;
         glGenBuffers(1, &VBO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        float *result = new float[model.getVertDataCount() + model2.getVertDataCount()];
-        std::copy(model.getVertData(), model.getVertData() + model.getVertDataCount(), result);
-        std::copy(model2.getVertData(), model2.getVertData() + model2.getVertDataCount(), result + model.getVertDataCount());
-
-        glBufferData(GL_ARRAY_BUFFER, sizeof(result), result, GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, model.getVertDataSize() + model2.getVertDataSize(), NULL, GL_DYNAMIC_DRAW);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, model.getVertDataSize(), model.getVertData());
+        glBufferSubData(GL_ARRAY_BUFFER, model.getVertDataSize(), model2.getVertDataSize(), model2.getVertData());
 
         // tworzymy VAO
         glGenVertexArrays(1, &VAO);
@@ -183,6 +181,7 @@ void WidgetOpenGL::paintGL()
 
             QMatrix4x4 pvm_matrix = p_matrix*v_matrix*m_matrix;
             glUniformMatrix4fv(attr, 1, GL_FALSE, pvm_matrix.data());
+
             if (i % 2 == 0) {
                 glDrawArrays(GL_TRIANGLES, 0, 3*triangles_cnt);
             } else {
