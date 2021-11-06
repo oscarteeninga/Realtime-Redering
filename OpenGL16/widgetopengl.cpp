@@ -255,10 +255,10 @@ void WidgetOpenGL::paintGL()
 
         // material...
         // !!!
-        Material material(0.24725f,  0.1995f,   0.0745f,     0.2f, // ambient
-                          0.75164f,  0.60648f,  0.22648f,    1.0f, // diffuse
-                          0.628281f, 0.555802f, 0.366065f,   1.0f, // specular
-                          0.4f*128.0f);
+        Material material(0.0f,  0.0f,   0.0f,     1.0f, // ambient
+                          0.01f,  0.01f,  0.01f,    1.0f, // diffuse
+                          0.5f, 0.5f, 0.5f,   1.0f, // specular
+                          0.25f*128.0f);
 
         int attr_material = glGetUniformLocation(shaderProgram, "material.ambient");
         if (attr_material < 0) throw QString("Nieprawidlowy parametr 'material.ambient'");
