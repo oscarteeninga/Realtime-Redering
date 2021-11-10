@@ -93,7 +93,6 @@ void WidgetOpenGL::initializeGL()
 
         Model model;
         model.readFile("../Modele/rcube.obj", true, false, 0.4);
-        triangles_cnt = model.getVertDataCount();
 
 
         ////////////////////////////////////////////////////////////////
@@ -101,10 +100,23 @@ void WidgetOpenGL::initializeGL()
         ////////////////////////////////////////////////////////////////
 
         // tworzymy VBO i przesylamy dane do serwera OpenGL
+//        GLuint VBO;
+//        glGenBuffers(1, &VBO);
+//        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+//        glBufferData(GL_ARRAY_BUFFER, model.getVertDataSize(), model.getVertData(), GL_STATIC_DRAW);
+
+        // EBO
         GLuint VBO;
         glGenBuffers(1, &VBO);
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, model.getVertDataSize(), model.getVertData(), GL_STATIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, model.getEboDataSize(), model.getEboArray(), GL_STATIC_DRAW);
+
+        GLuint EBO;
+        glGenBuffers(1, &EBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, model.getIndicesSize(), model.getEboIndices(), GL_STATIC_DRAW);
+
+        triangles_cnt = model.getIndicesSize() / sizeof(int);
 
         // tworzymy VAO
         glGenVertexArrays(1, &VAO);
@@ -125,7 +137,9 @@ void WidgetOpenGL::initializeGL()
         glEnableVertexAttribArray(attr);
 
         // zapodajemy VBO
+
         glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 
         // odczepiamy VAO, aby sie nic juz nie zmienilo
         glBindVertexArray(0);
@@ -208,7 +222,7 @@ void WidgetOpenGL::paintGL()
             QMatrix3x3 norm_matrix = invertTranspose(m_matrix); // !!!
             glUniformMatrix3fv(attr_n, 1, GL_FALSE, norm_matrix.data());
 
-            glDrawArrays(GL_TRIANGLES, 0, 3*triangles_cnt);
+            glDrawElements(GL_TRIANGLES, triangles_cnt, GL_UNSIGNED_INT, 0);
         }
 
         // odczepiamy VAO

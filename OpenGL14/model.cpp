@@ -5,6 +5,7 @@
 #include <QDebug>
 
 
+
 void Model::readFile(QString fname, bool readNormals, bool readTextures, float scale)
 {
     qDebug() << "Czytam '" << fname << "'...";
@@ -25,6 +26,7 @@ void Model::readFile(QString fname, bool readNormals, bool readTextures, float s
     count_items();
     alloc_items();
     parse_items(scale);
+    generate_ebo();
 }
 
 
@@ -51,6 +53,11 @@ void Model::count_items()
 
 void Model::alloc_items()
 {
+    indices = new int[3 * f_cnt];
+
+    memset(indices, 0, sizeof(int) * f_cnt * 3);
+    indices_size = 3 * f_cnt * sizeof(int);
+
     v = new float[3*v_cnt];
     memset(v, 0, sizeof(float)*3*v_cnt);
     if (read_normals)
@@ -184,3 +191,40 @@ void Model::print()
     }
 }
 
+void Model::generate_ebo() {
+    std::vector<float*> distinctVector;
+    for (int i = 0; i < 3*f_cnt; i++) {
+        bool unique = true;
+        for (int j = 0; j < distinctVector.size(); j++) {
+            float* coords = distinctVector[j];
+            bool same = true;
+            for (int k = 0; k < stride; k++) {
+                if (coords[k] != vertData[i * stride + k]) same = false;
+            }
+            if (same) {
+                indices[i] = j;
+                unique = false;
+            }
+        }
+        if (unique) {
+            float* newVertex = new float[stride];
+            for (int k = 0; k < stride; k++) {
+                newVertex[k] = vertData[i * stride + k];
+            }
+            int newIndex = distinctVector.size();
+            distinctVector.push_back(newVertex);
+            indices[i] = newIndex;
+        }
+    }
+
+    ebo_v = new float[distinctVector.size() * stride];
+    memset(ebo_v, 0, sizeof(float) * distinctVector.size() * stride);
+
+    for (int i = 0; i < distinctVector.size(); i++) {
+        for (int k = 0; k < stride; k++) {
+            ebo_v[(i * stride) + k] = distinctVector[i][k];
+        }
+    }
+
+    ebo_size = distinctVector.size() * stride * sizeof(float);
+}
