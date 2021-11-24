@@ -200,7 +200,7 @@ void WidgetOpenGL::initializeGL()
         ////////////////////////////////////////////////////////////////
 
         // ZMIANA
-        texture_mirror = loadTexture2D("../mirror.jpg");
+        texture_mirror = loadTexture2D("../mirror.png");
         tex_skybox = loadTextureCube("../Modele/" TEXTURE_SKYBOX,  ".jpg");
 
         ////////////////////////////////////////////////////////////////
