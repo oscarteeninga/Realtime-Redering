@@ -40,6 +40,7 @@ public:
 protected:
     bool init_ok;
     int triangles_cnt, triangles_light_cnt;
+
     int minLayers, maxLayers, heightScale;
 
     QMatrix4x4 m_matrix, v_matrix, p_matrix;
