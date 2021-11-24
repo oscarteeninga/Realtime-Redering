@@ -6,7 +6,6 @@
 
 #define MODEL          "texcube" // dragon sphere rcube kubek texcube
 #define TEXTURE_SKYBOX "thickcloudswater" // jajdesert1 nansen test cloudylightrays thickcloudswater
-#define TEXTURE_MIRROR "my_mirror_texture"
 
 GLuint WidgetOpenGL::loadShader(GLenum type, QString fname)
 {
@@ -200,9 +199,9 @@ void WidgetOpenGL::initializeGL()
         // CZ 2T. Wczytanie tekstur
         ////////////////////////////////////////////////////////////////
 
-        tex_mirror  = loadTexture2D("../Modele/" TEXTURE_MIRROR ".jpg");
+        // ZMIANA
+        texture_mirror = loadTexture2D("../mirror.jpg");
         tex_skybox = loadTextureCube("../Modele/" TEXTURE_SKYBOX,  ".jpg");
-
 
         ////////////////////////////////////////////////////////////////
         // CZ 3. Vertex Buffer Object + Vertex Array Object
@@ -230,9 +229,9 @@ void WidgetOpenGL::initializeGL()
         glVertexAttribPointer(attr, 3, GL_FLOAT, GL_FALSE, model.getVertDataStride()*sizeof(GLfloat), (void *)(3*sizeof(GLfloat)));
         glEnableVertexAttribArray(attr);
 
-        // wspolrzedne tekstury
+        // udostepnienie tekstur
         attr = getAttribLocation(shaderProgram, "textureCoor");
-        glVertexAttribPointer(attr, 2, GL_FLOAT, GL_FALSE, model.getVertDataStride()*sizeof(GLfloat), (void *)(6*sizeof(GLfloat)));
+        glVertexAttribPointer(attr, 2, GL_FLOAT, GL_FALSE, model.getVertDataStride() * sizeof(GLfloat), (void *)(6 * sizeof(GLfloat)));
         glEnableVertexAttribArray(attr);
 
         // zapodajemy VBO
@@ -240,7 +239,6 @@ void WidgetOpenGL::initializeGL()
 
         // odczepiamy VAO, aby sie nic juz nie zmienilo
         glBindVertexArray(0);
-
 
         ////////////////////////////////////////////////////////////////
         // CZ 3L. Wczytanie modelu swiatla (sfera)
@@ -352,11 +350,12 @@ void WidgetOpenGL::paintGL()
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
 
-        // udostepnienie tekstur
+        // ZMIANA
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, tex_mirror);
+        glBindTexture(GL_TEXTURE_2D, texture_mirror);
         glUniform1i(getUniformLocation(shaderProgram, "textureMirror"), 0);
-
+        
+        // udostepnienie tekstur
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, tex_skybox);
         glUniform1i(getUniformLocation(shaderProgram, "textureSkybox"), 1);
