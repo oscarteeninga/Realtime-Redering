@@ -12,15 +12,18 @@ struct Material
     vec3 diffuse;
     vec3 specular;
     float shininess;
+    float useTex;
 };
 
 in vec4 fragPos;
 in vec3 fragNormal;
+in vec2 fragTexCoor;
 
 uniform vec3 eyePos;
 uniform Light light;
 uniform Material material;
 
+uniform sampler2D textureMirror;
 uniform samplerCube textureSkybox;
 uniform int slider;
 
@@ -40,9 +43,15 @@ void main()
   vec3 reflDir = reflect(-lightDir, fragNormal);
   vec3 specular = pow(max(dot(viewDir, reflDir), 0.0), material.shininess)*light.color*material.specular;
 
+  vec3 texColor = texture(textureMirror, fragTexCoor).rgb * material.useTex;
+  float grayScaleColor = texColor.r * 0.299 + texColor.g * 0.587 + texColor.b * 0.114;
+
   vec3 mirror = texture(textureSkybox, R).rgb;
   if (int(gl_FragCoord.x) < slider)
     mirror = vec3(0.0, 0.0, 0.0);
+  else
+    mirror *= grayScaleColor;
+
 
   color = vec4(material.ambient + diffuse + specular + mirror, 1.0);
 }

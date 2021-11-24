@@ -73,23 +73,15 @@ void MainWindow::on_horizontalSlider_Slider_valueChanged(int value)
     ui->widgetOpenGL->move_slider(ui->widgetOpenGL->width()*value/10000);
 }
 
-void MainWindow::on_verticalSliderMinLayer_valueChanged(int value)
-{
+void MainWindow::on_verticalSliderMinLayer_valueChanged(int value) {
     ui->widgetOpenGL->sliderMinLayer_valueChanged(value);
-
 }
 
-
-void MainWindow::on_verticalSliderMaxLayer_valueChanged(int value)
-{
+void MainWindow::on_verticalSliderMaxLayer_valueChanged(int value) {
     ui->widgetOpenGL->sliderMaxLayer_valueChanged(value);
 
 }
 
-
-void MainWindow::on_verticalSliderHeight_valueChanged(int value)
-{
-
+void MainWindow::on_verticalSliderHeight_valueChanged(int value) {
     ui->widgetOpenGL->sliderHeight_valueChanged(value);
 }
-

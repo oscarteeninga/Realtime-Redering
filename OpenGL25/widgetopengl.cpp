@@ -4,8 +4,9 @@
 #include <QDebug>
 #include <QFile>
 
-#define MODEL          "sphere" // dragon sphere rcube kubek texcube
+#define MODEL          "texcube" // dragon sphere rcube kubek texcube
 #define TEXTURE_SKYBOX "thickcloudswater" // jajdesert1 nansen test cloudylightrays thickcloudswater
+#define TEXTURE_MIRROR "my_mirror_texture"
 
 GLuint WidgetOpenGL::loadShader(GLenum type, QString fname)
 {
@@ -192,13 +193,14 @@ void WidgetOpenGL::initializeGL()
         ////////////////////////////////////////////////////////////////
 
         Model model;
-        model.readFile("../Modele/" MODEL ".obj", true, false, false, 0.5);
+        model.readFile("../Modele/" MODEL ".obj", true, true, true, 0.5);
         triangles_cnt = model.getVertDataCount();
 
         ////////////////////////////////////////////////////////////////
         // CZ 2T. Wczytanie tekstur
         ////////////////////////////////////////////////////////////////
 
+        tex_mirror  = loadTexture2D("../Modele/" TEXTURE_MIRROR ".jpg");
         tex_skybox = loadTextureCube("../Modele/" TEXTURE_SKYBOX,  ".jpg");
 
 
@@ -226,6 +228,11 @@ void WidgetOpenGL::initializeGL()
         attr = glGetAttribLocation(shaderProgram, "normal");
         if (attr < 0) throw QString("Nieprawidlowy parametr 'normal'");
         glVertexAttribPointer(attr, 3, GL_FLOAT, GL_FALSE, model.getVertDataStride()*sizeof(GLfloat), (void *)(3*sizeof(GLfloat)));
+        glEnableVertexAttribArray(attr);
+
+        // wspolrzedne tekstury
+        attr = getAttribLocation(shaderProgram, "textureCoor");
+        glVertexAttribPointer(attr, 2, GL_FLOAT, GL_FALSE, model.getVertDataStride()*sizeof(GLfloat), (void *)(6*sizeof(GLfloat)));
         glEnableVertexAttribArray(attr);
 
         // zapodajemy VBO
@@ -347,8 +354,12 @@ void WidgetOpenGL::paintGL()
 
         // udostepnienie tekstur
         glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, tex_mirror);
+        glUniform1i(getUniformLocation(shaderProgram, "textureMirror"), 0);
+
+        glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, tex_skybox);
-        glUniform1i(getUniformLocation(shaderProgram, "textureSkybox"), 0);
+        glUniform1i(getUniformLocation(shaderProgram, "textureSkybox"), 1);
 
         // macierze
         int attr_pm = getUniformLocation(shaderProgram, "p_matrix");
@@ -394,6 +405,8 @@ void WidgetOpenGL::paintGL()
         glUniform3fv(attr_material, 1, material.specular);
         attr_material = getUniformLocation(shaderProgram, "material.shininess");
         glUniform1f(attr_material, material.shininess);
+        attr_material = getUniformLocation(shaderProgram, "material.useTex");
+        glUniform1f(attr_material, material.useTexture);
 
         for (int i = 0; i < 10; i++)
         {
